@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import FieldView from './components/FieldView.vue'
 
-// One Based Index で列数と行数を指定
+// One Based Index で列数と段数を指定
 const xColumn = 6 // 6列
-const yRow = 14 // 14行
+const yRow = 13 // 13段
 
 // ONE Based Index で puyo の位置を指定
 const puyo = [

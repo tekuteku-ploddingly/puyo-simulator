@@ -12,7 +12,7 @@ withDefaults(
   {
     puyo: () => [],
     xColumn: 6, // 6列
-    yRow: 14, // 14行
+    yRow: 13, // 13段
   },
 )
 </script>
