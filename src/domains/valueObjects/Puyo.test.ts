@@ -176,6 +176,19 @@ describe('Puyo', () => {
         const relatedCoordinates = related.map((p) => ({ x: p.x, y: p.y }))
         expect(relatedCoordinates).toEqual([])
       })
+      it('(6, 12) は (6, 13) を連結対象としない', () => {
+        const puyo = new Puyo({
+          x: 6,
+          y: 12,
+          xColumn: 6,
+          yRow: 13,
+          color: 'red',
+          owanimoFlag: false,
+        })
+        const related = puyo.calcRelated()
+        const relatedCoordinates = related.map((p) => ({ x: p.x, y: p.y }))
+        expect(relatedCoordinates.some((r) => r.y === 13)).toBe(false)
+      })
     })
   })
 })

@@ -88,7 +88,7 @@ export class Puyo implements IPuyo {
     // { x: 1, y: 1, color: this.color }
     if (left.x >= 1) related.push({ x: left.x, y: left.y, color: this.color })
     if (right.x <= xColumn) related.push({ x: right.x, y: right.y, color: this.color })
-    if (up.y >= 1) related.push({ x: up.x, y: up.y, color: this.color }) // 上は yRow より大きくなることはないため、チェックしない
+    if (up.y >= 1 && up.y < ghostRow) related.push({ x: up.x, y: up.y, color: this.color }) // 幽霊段(ghostRow)は連鎖に参加しないため除外
     if (down.y >= 1 && down.y <= ghostRow) related.push({ x: down.x, y: down.y, color: this.color })
     return related
   }
