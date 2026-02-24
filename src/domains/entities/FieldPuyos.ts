@@ -2,7 +2,6 @@ import type { IPuyo, IPuyoInfo } from './../valueObjects/Puyo'
 
 interface IFieldPuyos {
   puyos: IPuyo[]
-  renketsu: IRenketsuPuyoList // 連結している puyo をまとめる。lenght >= 4 なら消せる
   searchRenketsu: (puyos: IPuyo[]) => IRenketsuPuyoList
   doOwanimo: (puyos: IPuyo[]) => IPuyo[]
 }
@@ -12,11 +11,20 @@ type IRenketsuPuyo = IPuyo[]
 
 export class FieldPuyos implements IFieldPuyos {
   puyos: IPuyo[]
-  renketsu: IRenketsuPuyoList
   constructor(puyos: IPuyo[]) {
     this.puyos = puyos
-    this.renketsu = []
   }
+  turnProcess(): void {
+    while (true) {
+      const renketsuPuyoList = this.searchRenketsu(this.puyos)
+      const puyosWithOwanimoFlag = this.setOwanimoFlag({ puyos: this.puyos, renketsuPuyoList })
+      if (!puyosWithOwanimoFlag.some((p) => p.owanimoFlag)) break
+      const owanimoedPuyos = this.doOwanimo(puyosWithOwanimoFlag)
+      // fixme. xColumn をハードコードしている
+      this.puyos = this.dropPuyos({ puyos: owanimoedPuyos, xColumn: 6 })
+    }
+  }
+  // 連結しているぷよを探す。複数あれば複数返す。length 4以上なら4連結以上 = 消せる
   searchRenketsu(puyos: IPuyo[]): IRenketsuPuyoList {
     const renketsuPuyoList: IRenketsuPuyoList = []
     const visited: IPuyoInfo[] = []
@@ -53,6 +61,7 @@ export class FieldPuyos implements IFieldPuyos {
     puyos: IPuyo[]
     renketsuPuyoList: IRenketsuPuyoList
   }): IPuyo[] {
+    // 4連結以上の puyo を owanimoFlag = true にする
     const owanimoPuyos = renketsuPuyoList.filter((renketsu) => renketsu.length >= 4).flat()
     return puyos.map((puyo) => {
       if (owanimoPuyos.some((o) => o.x === puyo.x && o.y === puyo.y)) {
@@ -60,6 +69,20 @@ export class FieldPuyos implements IFieldPuyos {
       }
       return puyo
     })
+  }
+  dropPuyos({ puyos, xColumn }: { puyos: IPuyo[]; xColumn: number }): IPuyo[] {
+    // 各列ごとに puyo を落とす
+    const result: IPuyo[] = []
+    for (let x = 1; x <= xColumn; x++) {
+      const puyosInColumn = puyos.filter((p) => p.x === x)
+      // 下から順でソートしてから、y を 1 から順番に振り直す
+      const sorted = puyosInColumn.sort((a, b) => a.y - b.y)
+      sorted.forEach((puyo, index) => {
+        const droppedPuyo = puyo.dropTo({ y: index + 1 })
+        result.push(droppedPuyo)
+      })
+    }
+    return result
   }
 
   doOwanimo(puyos: IPuyo[]): IPuyo[] {

@@ -6,6 +6,7 @@ export interface IPuyo {
   color: string
   owanimoFlag: boolean // 4つ揃って消える対象かどうか
   setOwanimoFlag: (flag: boolean) => IPuyo // owanimo フラグを更新した新しい Puyo を返す
+  dropTo: ({ y }: { y: number }) => IPuyo // 下に落ちた新しい Puyo を返す
   calcRelated: () => IPuyoInfo[] // 連結対象になる座標。13段目は常に空配列を返す（幽霊連鎖）
 }
 
@@ -101,6 +102,18 @@ export class Puyo implements IPuyo {
       yRow: this.yRow,
       color: this.color,
       owanimoFlag: true,
+    })
+  }
+
+  // 下に落とす
+  dropTo({ y }: { y: number }): Puyo {
+    return new Puyo({
+      x: this.x,
+      y,
+      xColumn: this.xColumn,
+      yRow: this.yRow,
+      color: this.color,
+      owanimoFlag: this.owanimoFlag,
     })
   }
 }
