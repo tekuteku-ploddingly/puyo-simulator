@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import FieldView from './components/FieldView.vue'
+import ControlPad from './components/ControlPad.vue'
 import { FieldPuyos } from './domains/entities/FieldPuyos'
 import { Puyo } from './domains/valueObjects/Puyo'
 import { sleep } from './utils/utils'
@@ -39,6 +40,24 @@ async function nextStep() {
   await sleep(500)
   nextStep()
 }
+
+// コントロールパッド
+function moveLeft() {
+  console.log('move left')
+}
+function moveRight() {
+  console.log('move right')
+}
+function rotateLeft() {
+  console.log('rotate left')
+}
+function rotateRight() {
+  console.log('rotate right')
+}
+function drop() {
+  console.log('drop')
+  nextStep()
+}
 </script>
 
 <template>
@@ -51,10 +70,14 @@ async function nextStep() {
       :style="{ '--columns': xColumn, '--rows': yRow }"
       :displayPuyos="displayPuyos"
     />
+    <ControlPad
+      :moveLeft="moveLeft"
+      :moveRight="moveRight"
+      :rotateLeft="rotateLeft"
+      :rotateRight="rotateRight"
+      :drop="drop"
+    />
   </main>
-  <div>
-    <button @click="nextStep">start</button>
-  </div>
 </template>
 
 <style scoped>
