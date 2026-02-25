@@ -1,41 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { IFieldPuyos } from './../domains/entities/FieldPuyos'
 import type { IPuyo } from './../domains/valueObjects/Puyo'
-import { sleep } from '../utils/utils'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     xColumn: number
     yRow: number
-    fieldPuyos: IFieldPuyos
+    displayPuyos: IPuyo[]
   }>(),
   {
     xColumn: 6, // 6列
     yRow: 13, // 13段
+    displayPuyos: () => [],
   },
 )
 
-// 連鎖の処理に使う
-const stepsIterator = props.fieldPuyos.chainSteps()
 // 描画用
-const displayPuyos = ref<IPuyo[]>(props.fieldPuyos.puyos)
-
-async function nextStep() {
-  const { done, value } = stepsIterator.next()
-  if (done || !value) return // 連鎖処理が完了
-  displayPuyos.value = value.puyos
-  // 0.5秒待って次ステップへ
-  await sleep(500)
-  nextStep()
-}
 </script>
 
 <template>
   <!-- v-for と grid は ONE Based Index -->
-  <div>
-    <button @click="nextStep">start</button>
-  </div>
   <div class="field-container" :style="{ '--columns': xColumn, '--rows': yRow }">
     <div class="field" :style="{ '--columns': xColumn, '--rows': yRow }">
       <template v-for="y in yRow" :key="y">
@@ -54,16 +37,10 @@ async function nextStep() {
 </template>
 
 <style scoped>
-/** 40px が画面端からのマージン */
 .field-container {
-  width: min(100vw, calc((100dvh - 40px) / var(--rows) * var(--columns)));
-  height: min(calc(100dvh - 40px), calc(100vw / var(--columns) * var(--rows)));
+  width: 60%;
 }
 
-/**
- * 親は FieldView の横幅をcss で指定する
- * FieldView側は指定された横幅いっぱいでグリッドを描画する
-**/
 .field {
   width: 100%;
   aspect-ratio: var(--columns) / var(--rows);

@@ -2,6 +2,8 @@
 import FieldView from './components/FieldView.vue'
 import { FieldPuyos } from './domains/entities/FieldPuyos'
 import { Puyo } from './domains/valueObjects/Puyo'
+import { sleep } from './utils/utils'
+import { ref } from 'vue'
 
 // One Based Index で列数と段数を指定
 const xColumn = 6 // 6列
@@ -23,6 +25,20 @@ const puyos = [
   new Puyo({ color: 'blue', x: 2, y: 4, xColumn, yRow, owanimoFlag: false }),
 ]
 const fieldPuyos = new FieldPuyos(puyos)
+
+// 連鎖の処理に使う
+const stepsIterator = fieldPuyos.chainSteps()
+const displayPuyos = ref(fieldPuyos.puyos) // 描画用
+
+async function nextStep() {
+  const { done, value } = stepsIterator.next()
+
+  if (done || !value) return // 連鎖処理が完了
+  displayPuyos.value = value.puyos // 描画用に更新
+  // 0.5秒待って次ステップへ
+  await sleep(500)
+  nextStep()
+}
 </script>
 
 <template>
@@ -33,15 +49,20 @@ const fieldPuyos = new FieldPuyos(puyos)
       :xColumn="xColumn"
       :yRow="yRow"
       :style="{ '--columns': xColumn, '--rows': yRow }"
-      :fieldPuyos="fieldPuyos"
+      :displayPuyos="displayPuyos"
     />
   </main>
+  <div>
+    <button @click="nextStep">start</button>
+  </div>
 </template>
 
 <style scoped>
 main {
   padding: 20px 0;
   box-sizing: border-box;
+  max-width: 430px;
   height: 100dvh;
+  margin: 0 auto;
 }
 </style>
