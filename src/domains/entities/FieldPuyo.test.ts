@@ -3,9 +3,10 @@ import { FieldPuyos } from './FieldPuyos'
 import { Puyo } from './../valueObjects/Puyo'
 
 describe('FieldPuyos', () => {
-  describe('turnProcess', () => {
+  describe('chainSteps', () => {
     it('連鎖なし → 1回で抜ける（ぷよがそのまま）', () => {
       // 赤3つ + 青1つ = 4連結なし
+      // Arrange
       const puyos = [
         new Puyo({ x: 1, y: 1, xColumn: 6, yRow: 13, color: 'red', owanimoFlag: false }),
         new Puyo({ x: 1, y: 2, xColumn: 6, yRow: 13, color: 'red', owanimoFlag: false }),
@@ -13,19 +14,15 @@ describe('FieldPuyos', () => {
         new Puyo({ x: 2, y: 1, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
       ]
       const fieldPuyos = new FieldPuyos(puyos)
-      fieldPuyos.turnProcess()
-      const result = fieldPuyos.puyos.map((p) => ({ x: p.x, y: p.y, color: p.color }))
-      expect(result).toEqual(
-        expect.arrayContaining([
-          { x: 1, y: 1, color: 'red' },
-          { x: 1, y: 2, color: 'red' },
-          { x: 1, y: 3, color: 'red' },
-          { x: 2, y: 1, color: 'blue' },
-        ]),
-      )
-      expect(result).toHaveLength(4)
+
+      // Act
+      const steps = [...fieldPuyos.chainSteps()]
+
+      // Assert
+      expect(steps).toHaveLength(0) // 連鎖なし
+      expect(steps[0]).toBeUndefined()
     })
-    it('1連鎖 → 消えて終わる', () => {
+    it('1連鎖', () => {
       // 赤4連結 + 青1つ → 赤が消えて青だけ残る
       const puyos = [
         new Puyo({ x: 1, y: 1, xColumn: 6, yRow: 13, color: 'red', owanimoFlag: false }),
@@ -35,30 +32,56 @@ describe('FieldPuyos', () => {
         new Puyo({ x: 2, y: 1, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
       ]
       const fieldPuyos = new FieldPuyos(puyos)
-      fieldPuyos.turnProcess()
-      const result = fieldPuyos.puyos.map((p) => ({ x: p.x, y: p.y, color: p.color }))
+
+      // Act
+      const steps = [...fieldPuyos.chainSteps()]
+
+      // Assert
+      expect(steps).toHaveLength(2) // (owanimo => drop) x 1連鎖
+      expect(steps[0]?.phase).toBe('owanimo')
+      expect(steps[1]?.phase).toBe('drop')
+      const result = steps[1]?.puyos.map((p) => ({ x: p.x, y: p.y, color: p.color }))
       expect(result).toEqual([{ x: 2, y: 1, color: 'blue' }])
     })
-    it('2連鎖以上 → 連鎖が全部消えて止まる', () => {
-      // 列1: 赤 赤 赤 赤 青 青 青
-      // 列2: 青
-      // 1連鎖目: 赤4つ消える → 青3つが落下して (1,1)(1,2)(1,3) に
-      // 列2の青 (2,1) と合わせて青4連結 → 2連鎖目で青も消える
+    it('2連鎖', () => {
+      // Arrange
+      // 　 青
+      // 　 青
+      // 赤 赤 青
+      // 赤 赤 青
+      // 1連鎖目: 赤4つ消える → 青2つが落下して (2,1)(2,2)(3,1)(3,2) に
+      //  青4連結 → 2連鎖目で青も消える
       const puyos = [
         new Puyo({ x: 1, y: 1, xColumn: 6, yRow: 13, color: 'red', owanimoFlag: false }),
         new Puyo({ x: 1, y: 2, xColumn: 6, yRow: 13, color: 'red', owanimoFlag: false }),
-        new Puyo({ x: 1, y: 3, xColumn: 6, yRow: 13, color: 'red', owanimoFlag: false }),
-        new Puyo({ x: 1, y: 4, xColumn: 6, yRow: 13, color: 'red', owanimoFlag: false }),
-        new Puyo({ x: 1, y: 5, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
-        new Puyo({ x: 1, y: 6, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
-        new Puyo({ x: 1, y: 7, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
-        new Puyo({ x: 2, y: 1, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
+        new Puyo({ x: 2, y: 1, xColumn: 6, yRow: 13, color: 'red', owanimoFlag: false }),
+        new Puyo({ x: 2, y: 2, xColumn: 6, yRow: 13, color: 'red', owanimoFlag: false }),
+        new Puyo({ x: 2, y: 3, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
+        new Puyo({ x: 2, y: 4, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
+        new Puyo({ x: 3, y: 1, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
+        new Puyo({ x: 3, y: 2, xColumn: 6, yRow: 13, color: 'blue', owanimoFlag: false }),
       ]
       const fieldPuyos = new FieldPuyos(puyos)
-      fieldPuyos.turnProcess()
-      expect(fieldPuyos.puyos).toEqual([])
+
+      // Act
+      const steps = [...fieldPuyos.chainSteps()]
+
+      // Assert
+      expect(steps).toHaveLength(4) // (owanimo => drop) x 2連鎖
+      const result1 = steps[1]?.puyos.map((p) => ({ x: p.x, y: p.y, color: p.color })) // 1連鎖目の落下後
+      expect(result1).toEqual(
+        expect.arrayContaining([
+          { x: 2, y: 1, color: 'blue' },
+          { x: 2, y: 2, color: 'blue' },
+          { x: 3, y: 1, color: 'blue' },
+          { x: 3, y: 2, color: 'blue' },
+        ]),
+      )
+      const result2 = steps[3]?.puyos.map((p) => ({ x: p.x, y: p.y, color: p.color })) // 2連鎖目の落下後
+      expect(result2).toEqual([]) // 全部消える
     })
     it('幽霊連鎖: 13段目は幽霊のため、ぷよがくっついていても消えない', () => {
+      // Arrange
       const puyos = [
         // 赤は発火
         // 緑は13段目で幽霊 → 2連鎖目で消える
@@ -79,9 +102,29 @@ describe('FieldPuyos', () => {
         new Puyo({ x: 1, y: 13, xColumn: 6, yRow: 13, color: 'green', owanimoFlag: false }),
       ]
       const fieldPuyos = new FieldPuyos(puyos)
-      fieldPuyos.turnProcess()
-      const result = fieldPuyos.puyos.map((p) => ({ x: p.x, y: p.y, color: p.color }))
-      expect(result).toEqual(
+
+      // Act
+      const steps = [...fieldPuyos.chainSteps()]
+
+      // Assert
+      expect(steps).toHaveLength(4) // (owanimo => drop) x 2連鎖
+      const result1 = steps[1]?.puyos.map((p) => ({ x: p.x, y: p.y, color: p.color })) // 1連鎖目の落下後
+      expect(result1).toEqual(
+        expect.arrayContaining([
+          { x: 1, y: 1, color: 'yellow' },
+          { x: 1, y: 2, color: 'yellow' },
+          { x: 1, y: 3, color: 'yellow' },
+          { x: 1, y: 4, color: 'blue' },
+          { x: 1, y: 5, color: 'blue' },
+          { x: 1, y: 6, color: 'blue' },
+          { x: 1, y: 7, color: 'green' },
+          { x: 1, y: 8, color: 'green' },
+          { x: 1, y: 9, color: 'green' },
+          { x: 1, y: 10, color: 'green' },
+        ]),
+      )
+      const result2 = steps[3]?.puyos.map((p) => ({ x: p.x, y: p.y, color: p.color })) // 2連鎖目の落下後
+      expect(result2).toEqual(
         expect.arrayContaining([
           { x: 1, y: 1, color: 'yellow' },
           { x: 1, y: 2, color: 'yellow' },

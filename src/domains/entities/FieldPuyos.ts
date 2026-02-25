@@ -1,10 +1,13 @@
 import type { IPuyo, IPuyoInfo } from './../valueObjects/Puyo'
 
-interface IFieldPuyos {
+export interface IFieldPuyos {
   puyos: IPuyo[]
   searchRenketsu: (puyos: IPuyo[]) => IRenketsuPuyoList
   doOwanimo: (puyos: IPuyo[]) => IPuyo[]
+  chainSteps: () => Generator<{ phase: Phase; puyos: IPuyo[] }>
 }
+
+export type Phase = 'owanimo' | 'drop'
 
 type IRenketsuPuyoList = IPuyo[][]
 type IRenketsuPuyo = IPuyo[]
@@ -13,6 +16,20 @@ export class FieldPuyos implements IFieldPuyos {
   puyos: IPuyo[]
   constructor(puyos: IPuyo[]) {
     this.puyos = puyos
+  }
+  *chainSteps(): Generator<{ phase: Phase; puyos: IPuyo[] }> {
+    while (true) {
+      const renketsuPuyoList = this.searchRenketsu(this.puyos)
+      const puyosWithFlag = this.setOwanimoFlag({ puyos: this.puyos, renketsuPuyoList })
+      if (!puyosWithFlag.some((p) => p.owanimoFlag)) return // もう消すものがない => 連鎖終了 => done = true
+      // まだ消すものがある => 連鎖続行 => done = false
+      yield { phase: 'owanimo', puyos: puyosWithFlag } // 消える前の状態（点滅用）
+      const removed = this.doOwanimo(puyosWithFlag)
+      // fixme. xColumn をハードコードしている
+      const dropped = this.dropPuyos({ puyos: removed, xColumn: 6 })
+      this.puyos = dropped
+      yield { phase: 'drop', puyos: dropped } // 落下後の状態
+    }
   }
   turnProcess(): void {
     while (true) {
