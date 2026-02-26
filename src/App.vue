@@ -2,7 +2,7 @@
 import FieldWrapper from './components/FieldWrapper.vue'
 import ControlPad from './components/ControlPad.vue'
 import NextPuyoPanel from './components/NextPuyoPanel.vue'
-import { FieldPuyos } from './domains/entities/FieldPuyos'
+import { FieldPuyos, type chainStepsIterator } from './domains/entities/FieldPuyos'
 import { TsumoPuyo } from './domains/entities/TsumoPuyo'
 import { Puyo } from './domains/valueObjects/Puyo'
 import { sleep } from './utils/utils'
@@ -31,20 +31,17 @@ const puyos = [
 ]
 const fieldPuyos = new FieldPuyos(puyos)
 
-// 連鎖の処理に使う
-const stepsIterator = fieldPuyos.chainSteps()
 const displayPuyos = ref(fieldPuyos.puyos) // 描画用
 
-async function nextStep() {
-  console.log('nextStep')
+// 連鎖の処理
+async function nextStep(stepsIterator: chainStepsIterator) {
   const { done, value } = stepsIterator.next()
-  console.log('done', done, 'value', value)
 
   if (done || !value) return // 連鎖処理が完了
   displayPuyos.value = value.puyos // 描画用に更新
   // 0.5秒待って次ステップへ
   await sleep(500)
-  nextStep()
+  nextStep(stepsIterator)
 }
 
 // ツモぷよ
@@ -91,7 +88,6 @@ function rotateRight() {
 function drop() {
   const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: yRow })
   // todo. 13段チェック
-  console.warn('13段チェックが必要です')
 
   // FieldPuyos に追加する
   const dropJikuPuyo = jikuPuyo
@@ -123,7 +119,9 @@ function drop() {
   displayNextPuyo.value = puyoFactory.nextPuyo
   displayNext2Puyo.value = puyoFactory.next2Puyo
 
-  nextStep()
+  // 連鎖の処理に使う
+  const stepsIterator = fieldPuyos.chainSteps()
+  nextStep(stepsIterator)
 }
 </script>
 
