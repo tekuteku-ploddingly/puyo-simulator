@@ -70,6 +70,15 @@ const displayTsumoPuyos = ref(tsumoPuyo.puyos)
 const displayNextPuyo = ref(puyoFactory.nextPuyo)
 const displayNext2Puyo = ref(puyoFactory.next2Puyo)
 
+// ゴーストピース（落下地点のプレビュー）
+const displayGhostPuyos = computed(() => {
+  // displayTsumoPuyos を参照することで、ツモ操作時に再計算される
+  const tsumo = displayTsumoPuyos.value
+  if (tsumo.length === 0 || isChaining.value) return []
+  const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: yRow })
+  return fieldPuyos.calcGhostPosition({ jikuPuyo, childPuyo })
+})
+
 // コントロールパッド
 function moveLeft() {
   if (isChaining.value) return
@@ -162,6 +171,7 @@ function drop() {
         :yRow="yRow"
         :displayPuyos="displayPuyos"
         :overlayPuyos="overlayPuyos"
+        :ghostPuyos="displayGhostPuyos"
         :showField="showField"
       />
       <div class="side-panel">

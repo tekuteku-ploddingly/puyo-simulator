@@ -133,6 +133,35 @@ export class FieldPuyos implements IFieldPuyos {
     })
   }
 
+  // ゴーストピース（着地予測位置）を計算する
+  calcGhostPosition({ jikuPuyo, childPuyo }: { jikuPuyo: IPuyo; childPuyo: IPuyo }): IPuyo[] {
+    // 各列の最上段 y を求める
+    const columnTopY = (x: number): number => {
+      const puyosInColumn = this.puyos.filter((p) => p.x === x)
+      if (puyosInColumn.length === 0) return 0
+      return Math.max(...puyosInColumn.map((p) => p.y))
+    }
+
+    if (jikuPuyo.x === childPuyo.x) {
+      // 縦並び（同じ列）: 下側が columnTopY + 1、上側が columnTopY + 2
+      const topY = columnTopY(jikuPuyo.x)
+      const lowerPuyo = jikuPuyo.y < childPuyo.y ? jikuPuyo : childPuyo
+      const upperPuyo = jikuPuyo.y < childPuyo.y ? childPuyo : jikuPuyo
+      return [
+        lowerPuyo.dropTo({ y: topY + 1 }),
+        upperPuyo.dropTo({ y: topY + 2 }),
+      ]
+    } else {
+      // 横並び: 各列独立に着地
+      const jikuY = columnTopY(jikuPuyo.x) + 1
+      const childY = columnTopY(childPuyo.x) + 1
+      return [
+        jikuPuyo.dropTo({ y: jikuY }),
+        childPuyo.dropTo({ y: childY }),
+      ]
+    }
+  }
+
   doOwanimo(puyos: IPuyo[]): IPuyo[] {
     return puyos.filter((puyo) => !puyo.owanimoFlag)
   }
