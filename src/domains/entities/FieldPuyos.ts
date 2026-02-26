@@ -20,13 +20,22 @@ export class FieldPuyos implements IFieldPuyos {
   constructor(puyos: IPuyo[]) {
     this.puyos = puyos
   }
+  canDropPuyo({ jikuPuyo, childPuyo }: { jikuPuyo: IPuyo; childPuyo: IPuyo }): boolean {
+    // fixme. yRow をハードコードしている
+    const yRow = 13
+    const jikuColumnCount = this.puyos.filter((p) => p.x === jikuPuyo.x).length
+    const childColumnCount = this.puyos.filter((p) => p.x === childPuyo.x).length
+    return jikuColumnCount < yRow && childColumnCount < yRow
+  }
   addDropPuyo({ jikuPuyo, childPuyo }: { jikuPuyo: IPuyo; childPuyo: IPuyo }): IPuyo[] {
     this.puyos.push(jikuPuyo)
     this.puyos.push(childPuyo)
-    // fixme. xColumn をハードコードしている
+    // fixme. xColumn, yRow をハードコードしている
     const dropped = this.dropPuyos({ puyos: this.puyos, xColumn: 6 })
-    this.puyos = dropped
-    return dropped
+    // 14段目（yRow超え）のぷよを除去
+    const trimmed = dropped.filter((p) => p.y <= 13)
+    this.puyos = trimmed
+    return trimmed
   }
   *chainSteps(): chainStepsIterator {
     while (true) {
@@ -111,6 +120,17 @@ export class FieldPuyos implements IFieldPuyos {
       })
     }
     return result
+  }
+
+  // 各ぷよの隣接同色接続情報を計算する
+  calcConnections(puyos: IPuyo[]): IPuyo[] {
+    return puyos.map((puyo) => {
+      const top = puyos.some((p) => p.x === puyo.x && p.y === puyo.y + 1 && p.color === puyo.color)
+      const bottom = puyos.some((p) => p.x === puyo.x && p.y === puyo.y - 1 && p.color === puyo.color)
+      const left = puyos.some((p) => p.x === puyo.x - 1 && p.y === puyo.y && p.color === puyo.color)
+      const right = puyos.some((p) => p.x === puyo.x + 1 && p.y === puyo.y && p.color === puyo.color)
+      return puyo.setConnections({ top, right, bottom, left })
+    })
   }
 
   doOwanimo(puyos: IPuyo[]): IPuyo[] {

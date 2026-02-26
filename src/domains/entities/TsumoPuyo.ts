@@ -203,6 +203,7 @@ export class TsumoPuyo implements ITsumoPuyo {
         throw new Error('ツモぷよのdrop座標計算に失敗しました')
     }
 
+    // ここで、13段ある列に落とそうとするとエラーになってしまう
     const newJikuPuyo = new Puyo({ ...jikuPuyo, y: newJikuY, yRow: fieldYRow })
     const newChildPuyo = new Puyo({ ...childPuyo, y: newChildY, yRow: fieldYRow })
 

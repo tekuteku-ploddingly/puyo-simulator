@@ -95,7 +95,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
   align-items: center;
   gap: 6px;
   width: 100%;
-  padding: 16px 4px;
+  padding: 8px 4px;
 }
 
 .controls-group {
@@ -108,8 +108,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
 }
 
 .ctrl-btn {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   background: #2d3748;
   border: 2px solid #4a5568;
   border-radius: 10px;

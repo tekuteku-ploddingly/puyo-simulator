@@ -2,43 +2,45 @@
 import FieldWrapper from './components/FieldWrapper.vue'
 import ControlPad from './components/ControlPad.vue'
 import NextPuyoPanel from './components/NextPuyoPanel.vue'
+import TemplateSelector from './components/TemplateSelector.vue'
 import { FieldPuyos, type chainStepsIterator } from './domains/entities/FieldPuyos'
 import { TsumoPuyo } from './domains/entities/TsumoPuyo'
-import { Puyo } from './domains/valueObjects/Puyo'
+import { Puyo, type IPuyo } from './domains/valueObjects/Puyo'
 import { sleep } from './utils/utils'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { PuyoFactory } from './domains/entities/PuyoFactory'
+import { templates } from './domains/templates'
 
 // One Based Index で列数と段数を指定
 const xColumn = 6 // 6列
 const yRow = 13 // 13段
 
-const puyoFactory = new PuyoFactory({ numberOfColors: 4 })
+let puyoFactory = new PuyoFactory({ numberOfColors: 4 })
 
 // ONE Based Index で puyo の位置を指定
-const puyos = [
-  new Puyo({ color: 'red', x: 1, y: 1, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'red', x: 2, y: 1, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'red', x: 3, y: 1, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'yellow', x: 1, y: 2, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'yellow', x: 2, y: 2, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'yellow', x: 3, y: 2, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'blue', x: 1, y: 3, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'blue', x: 2, y: 3, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'blue', x: 3, y: 3, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'yellow', x: 1, y: 4, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'red', x: 1, y: 5, xColumn, yRow, owanimoFlag: false }),
-]
+const puyos: IPuyo[] = []
 const fieldPuyos = new FieldPuyos(puyos)
 
-const displayPuyos = ref(fieldPuyos.puyos) // 描画用
+const displayPuyos = ref(fieldPuyos.calcConnections(fieldPuyos.puyos)) // 描画用
+const isChaining = ref(false) // 連鎖処理中フラグ
+
+// 定型オーバーレイ
+const selectedTemplate = ref<string | null>('GTR')
+const showField = ref(true)
+const overlayPuyos = computed(() => {
+  const t = templates.find((t) => t.name === selectedTemplate.value)
+  return t ? t.puyos : []
+})
 
 // 連鎖の処理
 async function nextStep(stepsIterator: chainStepsIterator) {
   const { done, value } = stepsIterator.next()
 
-  if (done || !value) return // 連鎖処理が完了
-  displayPuyos.value = value.puyos // 描画用に更新
+  if (done || !value) {
+    isChaining.value = false
+    return // 連鎖処理が完了
+  }
+  displayPuyos.value = fieldPuyos.calcConnections(value.puyos) // 描画用に更新
   // 0.5秒待って次ステップへ
   await sleep(500)
   nextStep(stepsIterator)
@@ -70,24 +72,49 @@ const displayNext2Puyo = ref(puyoFactory.next2Puyo)
 
 // コントロールパッド
 function moveLeft() {
+  if (isChaining.value) return
   tsumoPuyo.moveLeft()
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function moveRight() {
+  if (isChaining.value) return
   tsumoPuyo.moveRight()
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function rotateLeft() {
+  if (isChaining.value) return
   tsumoPuyo.rotateLeft()
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function rotateRight() {
+  if (isChaining.value) return
   tsumoPuyo.rotateRight()
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
+function reset() {
+  if (isChaining.value) return
+  // フィールドをクリア
+  fieldPuyos.puyos = []
+  displayPuyos.value = []
+  // ツモを新しくする
+  puyoFactory = new PuyoFactory({ numberOfColors: 4 })
+  const { jiku: newJiku, child: newChild } = puyoFactory.tsumoPuyo
+  tsumoPuyo.tsumo({
+    puyo: [
+      new Puyo({ ...newJiku, xColumn: tsumoXColumn, yRow: tsumoYRow }),
+      new Puyo({ ...newChild, xColumn: tsumoXColumn, yRow: tsumoYRow }),
+    ],
+  })
+  displayTsumoPuyos.value = [...tsumoPuyo.puyos]
+  displayNextPuyo.value = puyoFactory.nextPuyo
+  displayNext2Puyo.value = puyoFactory.next2Puyo
+}
 function drop() {
+  if (isChaining.value) return
   const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: yRow })
-  // todo. 13段チェック
+
+  // 13段チェック: どちらかの列が満杯なら落とせない
+  if (!fieldPuyos.canDropPuyo({ jikuPuyo, childPuyo })) return
 
   // FieldPuyos に追加する
   const dropJikuPuyo = jikuPuyo
@@ -95,7 +122,7 @@ function drop() {
   const dropped = fieldPuyos.addDropPuyo({ jikuPuyo: dropJikuPuyo, childPuyo: dropChildPuyo })
 
   // フィールド描画に反映
-  displayPuyos.value = dropped
+  displayPuyos.value = fieldPuyos.calcConnections(dropped)
 
   // drop に成功したなら、ツモぷよを繰り上げる
   puyoFactory.dropTsumo()
@@ -120,6 +147,7 @@ function drop() {
   displayNext2Puyo.value = puyoFactory.next2Puyo
 
   // 連鎖の処理に使う
+  isChaining.value = true
   const stepsIterator = fieldPuyos.chainSteps()
   nextStep(stepsIterator)
 }
@@ -133,9 +161,20 @@ function drop() {
         :xColumn="xColumn"
         :yRow="yRow"
         :displayPuyos="displayPuyos"
+        :overlayPuyos="overlayPuyos"
+        :showField="showField"
       />
       <div class="side-panel">
         <NextPuyoPanel :nextPuyo="displayNextPuyo" :next2Puyo="displayNext2Puyo" />
+        <TemplateSelector
+          :templates="templates"
+          :selected="selectedTemplate"
+          :showField="showField"
+          @change="selectedTemplate = $event"
+          @update:showField="showField = $event"
+        />
+        <div class="spacer"></div>
+        <button class="menu-btn" @click="reset">Reset</button>
       </div>
     </div>
     <ControlPad
@@ -150,22 +189,44 @@ function drop() {
 
 <style scoped>
 main {
-  padding: 20px 0;
+  padding: 60px 0;
   box-sizing: border-box;
   max-width: 430px;
   height: 100dvh;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 .main-area {
   display: flex;
   gap: 10px;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 .side-panel {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 80px;
+  width: 120px;
   flex-shrink: 0;
+}
+.spacer {
+  height: 10px;
+}
+.menu-btn {
+  background: #2d3748;
+  border: 2px solid #4a5568;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 0;
+  cursor: pointer;
+  text-align: center;
+}
+.menu-btn:active {
+  background: #4a5568;
 }
 </style>

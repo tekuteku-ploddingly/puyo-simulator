@@ -1,3 +1,10 @@
+export interface IConnections {
+  top: boolean
+  right: boolean
+  bottom: boolean
+  left: boolean
+}
+
 export interface IPuyo {
   x: number
   y: number
@@ -5,7 +12,9 @@ export interface IPuyo {
   yRow: number
   color: string
   owanimoFlag: boolean // 4つ揃って消える対象かどうか
+  connections: IConnections // 隣接する同色ぷよとの接続情報
   setOwanimoFlag: (flag: boolean) => IPuyo // owanimo フラグを更新した新しい Puyo を返す
+  setConnections: (connections: IConnections) => IPuyo // 接続情報を更新した新しい Puyo を返す
   dropTo: ({ y }: { y: number }) => IPuyo // 下に落ちた新しい Puyo を返す
   calcRelated: () => IPuyoInfo[] // 連結対象になる座標。13段目は常に空配列を返す（幽霊連鎖）
 }
@@ -17,6 +26,8 @@ export interface IPuyoInfo {
   color: string
 }
 
+const defaultConnections: IConnections = { top: false, right: false, bottom: false, left: false }
+
 export class Puyo implements IPuyo {
   readonly x: number
   readonly y: number
@@ -24,6 +35,7 @@ export class Puyo implements IPuyo {
   readonly yRow: number
   readonly color: string
   readonly owanimoFlag: boolean
+  readonly connections: IConnections
 
   constructor({
     x,
@@ -32,6 +44,7 @@ export class Puyo implements IPuyo {
     yRow,
     color,
     owanimoFlag,
+    connections,
   }: {
     x: number
     y: number
@@ -39,6 +52,7 @@ export class Puyo implements IPuyo {
     yRow: number
     color: string
     owanimoFlag: boolean
+    connections?: IConnections
   }) {
     this.validate({ x, y, xColumn, yRow })
     this.x = x
@@ -47,24 +61,15 @@ export class Puyo implements IPuyo {
     this.yRow = yRow
     this.color = color
     this.owanimoFlag = owanimoFlag
+    this.connections = connections ?? defaultConnections
   }
 
-  private validate({
-    x,
-    y,
-    xColumn,
-    yRow,
-  }: {
-    x: number
-    y: number
-    xColumn: number
-    yRow: number
-  }): void {
-    if (x < 1 || x > xColumn) {
-      throw new Error(`x は 1 以上 ${xColumn} 以下でなければなりません。`)
+  private validate({ x, y }: { x: number; y: number; xColumn: number; yRow: number }): void {
+    if (x < 1) {
+      throw new Error('x は 1 以上でなければなりません。')
     }
-    if (y < 1 || y > yRow) {
-      throw new Error(`y は 1 以上 ${yRow} 以下でなければなりません。`)
+    if (y < 1) {
+      throw new Error('y は 1 以上でなければなりません。')
     }
   }
 
@@ -102,6 +107,20 @@ export class Puyo implements IPuyo {
       yRow: this.yRow,
       color: this.color,
       owanimoFlag: true,
+      connections: this.connections,
+    })
+  }
+
+  // 接続情報を更新した新しい Puyo を返す
+  setConnections(connections: IConnections): Puyo {
+    return new Puyo({
+      x: this.x,
+      y: this.y,
+      xColumn: this.xColumn,
+      yRow: this.yRow,
+      color: this.color,
+      owanimoFlag: this.owanimoFlag,
+      connections,
     })
   }
 
