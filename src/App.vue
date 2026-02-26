@@ -17,17 +17,17 @@ const puyoFactory = new PuyoFactory({ numberOfColors: 4 })
 
 // ONE Based Index で puyo の位置を指定
 const puyos = [
-  new Puyo({ color: 'red', x: 1, y: 1, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'red', x: 2, y: 1, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'red', x: 3, y: 1, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'yellow', x: 1, y: 2, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'yellow', x: 2, y: 2, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'yellow', x: 3, y: 2, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'blue', x: 1, y: 3, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'blue', x: 2, y: 3, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'blue', x: 3, y: 3, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'yellow', x: 1, y: 4, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'red', x: 1, y: 5, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#bd2824', x: 1, y: 1, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#bd2824', x: 2, y: 1, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#bd2824', x: 3, y: 1, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#ffc932', x: 1, y: 2, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#ffc932', x: 2, y: 2, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#ffc932', x: 3, y: 2, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#264dd8', x: 1, y: 3, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#264dd8', x: 2, y: 3, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#264dd8', x: 3, y: 3, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#ffc932', x: 1, y: 4, xColumn, yRow, owanimoFlag: false }),
+  new Puyo({ color: '#bd2824', x: 1, y: 5, xColumn, yRow, owanimoFlag: false }),
 ]
 const fieldPuyos = new FieldPuyos(puyos)
 

@@ -30,7 +30,7 @@ export class PuyoFactory implements IPuyoFactory {
     if (numberOfColors > 5) throw new Error('ぷよの色は5色以下を指定してください')
     this.count = 1
     this.numberOfColors = numberOfColors
-    this.colorVariation = ['red', 'blue', 'yellow', 'green', 'purple']
+    this.colorVariation = ['#bd2824', '#264dd8', '#ffc932', '#288a3b', '#a949de']
     this.colors = this.getColorRange({ numberOfColors, colorVariation: this.colorVariation })
     const { tsumoPuyo, nextPuyo, next2Puyo } = this.initializePuyo()
     this.tsumoPuyo = tsumoPuyo
