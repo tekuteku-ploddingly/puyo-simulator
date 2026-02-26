@@ -120,6 +120,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
   justify-content: center;
   cursor: pointer;
   user-select: none;
+  touch-action: manipulation;
   transition:
     background 0.1s,
     transform 0.1s;
