@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { InitialPattern } from '../domains/entities/PuyoFactory'
 
 defineProps<{
@@ -8,6 +9,8 @@ defineProps<{
 const emit = defineEmits<{
   change: [pattern: InitialPattern | null]
 }>()
+
+const isOpen = ref(false)
 
 const patterns: { value: InitialPattern; label: string }[] = [
   { value: 'AA_BB', label: 'AA BB' },
@@ -25,11 +28,16 @@ function toggle(value: InitialPattern, currentSelected: InitialPattern | null) {
 
 <template>
   <div class="pattern-selector">
-    <div class="selector-label">初手パターン</div>
-    <label v-for="p in patterns" :key="p.value" class="pattern-option">
-      <input type="checkbox" :checked="selected === p.value" @change="toggle(p.value, selected)" />
-      {{ p.label }}
-    </label>
+    <button class="selector-header" @click="isOpen = !isOpen">
+      <span class="selector-label">初手パターン</span>
+      <span class="selector-arrow" :class="{ open: isOpen }">▶</span>
+    </button>
+    <div v-show="isOpen" class="pattern-list">
+      <label v-for="p in patterns" :key="p.value" class="pattern-option">
+        <input type="checkbox" :checked="selected === p.value" @change="toggle(p.value, selected)" />
+        {{ p.label }}
+      </label>
+    </div>
   </div>
 </template>
 
@@ -44,11 +52,32 @@ function toggle(value: InitialPattern, currentSelected: InitialPattern | null) {
   gap: 6px;
 }
 
+.selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+}
+
 .selector-label {
   font-size: 10px;
   font-weight: 700;
   color: #a0aec0;
   letter-spacing: 1px;
+}
+
+.selector-arrow {
+  font-size: 10px;
+  color: #a0aec0;
+  transition: transform 0.2s;
+}
+
+.selector-arrow.open {
+  transform: rotate(90deg);
 }
 
 .pattern-option {
