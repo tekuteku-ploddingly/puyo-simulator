@@ -25,7 +25,7 @@ const displayPuyos = ref(fieldPuyos.calcConnections(fieldPuyos.puyos)) // 描画
 const isChaining = ref(false) // 連鎖処理中フラグ
 
 // 定型オーバーレイ
-const selectedTemplate = ref<string | null>(null)
+const selectedTemplate = ref<string | null>('GTR')
 const showField = ref(true)
 const overlayPuyos = computed(() => {
   const t = templates.find((t) => t.name === selectedTemplate.value)
