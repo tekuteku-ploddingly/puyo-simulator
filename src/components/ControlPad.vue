@@ -1,5 +1,7 @@
 <script setup lang="ts">
-withDefaults(
+import { onMounted, onUnmounted } from 'vue'
+
+const props = withDefaults(
   defineProps<{
     moveLeft: () => void
     moveRight: () => void
@@ -15,6 +17,36 @@ withDefaults(
     drop: () => {},
   },
 )
+
+function onKeyDown(e: KeyboardEvent) {
+  switch (e.key) {
+    case 'ArrowLeft':
+      e.preventDefault()
+      props.moveLeft()
+      break
+    case 'ArrowRight':
+      e.preventDefault()
+      props.moveRight()
+      break
+    case 'z':
+    case 'Z':
+      e.preventDefault()
+      props.rotateLeft()
+      break
+    case 'x':
+    case 'X':
+      e.preventDefault()
+      props.rotateRight()
+      break
+    case 'ArrowDown':
+      e.preventDefault()
+      props.drop()
+      break
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeyDown))
+onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
 </script>
 
 <template>
