@@ -208,7 +208,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 80px;
+  width: 120px;
   flex-shrink: 0;
 }
 .spacer {
