@@ -8,7 +8,8 @@ import { TsumoPuyo } from './domains/entities/TsumoPuyo'
 import { Puyo, type IPuyo } from './domains/valueObjects/Puyo'
 import { sleep } from './utils/utils'
 import { ref, computed } from 'vue'
-import { PuyoFactory } from './domains/entities/PuyoFactory'
+import { PuyoFactory, type InitialPattern } from './domains/entities/PuyoFactory'
+import PatternSelector from './components/PatternSelector.vue'
 import { templates } from './domains/templates'
 
 // One Based Index で列数と段数を指定
@@ -23,6 +24,9 @@ const fieldPuyos = new FieldPuyos(puyos)
 
 const displayPuyos = ref(fieldPuyos.calcConnections(fieldPuyos.puyos)) // 描画用
 const isChaining = ref(false) // 連鎖処理中フラグ
+
+// 初手パターン
+const selectedPattern = ref<InitialPattern | null>(null)
 
 // 定型オーバーレイ
 const selectedTemplate = ref<string | null>('GTR')
@@ -70,6 +74,15 @@ const displayTsumoPuyos = ref(tsumoPuyo.puyos)
 const displayNextPuyo = ref(puyoFactory.nextPuyo)
 const displayNext2Puyo = ref(puyoFactory.next2Puyo)
 
+// ゴーストピース（落下地点のプレビュー）
+const displayGhostPuyos = computed(() => {
+  // displayTsumoPuyos を参照することで、ツモ操作時に再計算される
+  const tsumo = displayTsumoPuyos.value
+  if (tsumo.length === 0 || isChaining.value) return []
+  const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: yRow })
+  return fieldPuyos.calcGhostPosition({ jikuPuyo, childPuyo })
+})
+
 // コントロールパッド
 function moveLeft() {
   if (isChaining.value) return
@@ -97,7 +110,10 @@ function reset() {
   fieldPuyos.puyos = []
   displayPuyos.value = []
   // ツモを新しくする
-  puyoFactory = new PuyoFactory({ numberOfColors: 4 })
+  puyoFactory = new PuyoFactory({
+    numberOfColors: 4,
+    initialPattern: selectedPattern.value ?? undefined,
+  })
   const { jiku: newJiku, child: newChild } = puyoFactory.tsumoPuyo
   tsumoPuyo.tsumo({
     puyo: [
@@ -162,6 +178,7 @@ function drop() {
         :yRow="yRow"
         :displayPuyos="displayPuyos"
         :overlayPuyos="overlayPuyos"
+        :ghostPuyos="displayGhostPuyos"
         :showField="showField"
       />
       <div class="side-panel">
@@ -172,6 +189,10 @@ function drop() {
           :showField="showField"
           @change="selectedTemplate = $event"
           @update:showField="showField = $event"
+        />
+        <PatternSelector
+          :selected="selectedPattern"
+          @change="selectedPattern = $event"
         />
         <div class="spacer"></div>
         <button class="menu-btn" @click="reset">Reset</button>

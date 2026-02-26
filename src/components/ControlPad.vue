@@ -56,23 +56,29 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
       <button class="ctrl-btn" aria-label="左移動" @click="moveLeft">
         <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
       </button>
-      <!-- Right -->
-      <button class="ctrl-btn" aria-label="右移動" @click="moveRight">
-        <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
-      </button>
+
+      <div class="controls-inner-spacer"></div>
+
       <!-- Rotate Left -->
       <button class="ctrl-btn" aria-label="左回転" @click="rotateLeft">
         <svg viewBox="0 0 24 24">
-          <path d="M4 12a8 8 0 0 1 14-5.3" />
-          <path d="M18 3v4h-4" />
+          <path d="M15 4 C8 4, 8 20, 15 20" />
+          <path d="M12 17l3 3-1-5" />
         </svg>
       </button>
       <!-- Rotate Right -->
       <button class="ctrl-btn" aria-label="右回転" @click="rotateRight">
         <svg viewBox="0 0 24 24">
-          <path d="M20 12a8 8 0 0 1-14 5.3" />
-          <path d="M6 21v-4h4" />
+          <path d="M9 4 C16 4, 16 20, 9 20" />
+          <path d="M12 17l-3 3 1-5" />
         </svg>
+      </button>
+
+      <div class="controls-inner-spacer"></div>
+
+      <!-- Right -->
+      <button class="ctrl-btn" aria-label="右移動" @click="moveRight">
+        <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
       </button>
     </div>
 
@@ -101,6 +107,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
 .controls-group {
   display: flex;
   gap: 6px;
+}
+
+.controls-inner-spacer {
+  width: 12px;
 }
 
 .controls-spacer {

@@ -4,6 +4,7 @@ import type { TemplatePuyo } from './../domains/templates'
 import TsumoZone from './TsumoZone.vue'
 import FieldView from './FieldView.vue'
 import TemplateOverlay from './TemplateOverlay.vue'
+import GhostOverlay from './GhostOverlay.vue'
 
 withDefaults(
   defineProps<{
@@ -12,6 +13,7 @@ withDefaults(
     yRow: number
     displayPuyos: IPuyo[]
     overlayPuyos: TemplatePuyo[]
+    ghostPuyos: IPuyo[]
     showField: boolean
   }>(),
   {
@@ -20,6 +22,7 @@ withDefaults(
     yRow: 13,
     displayPuyos: () => [],
     overlayPuyos: () => [],
+    ghostPuyos: () => [],
     showField: true,
   },
 )
@@ -35,6 +38,13 @@ withDefaults(
         :xColumn="xColumn"
         :yRow="yRow"
         :puyos="overlayPuyos"
+      />
+      <GhostOverlay
+        v-if="ghostPuyos.length"
+        class="field-overlay"
+        :xColumn="xColumn"
+        :yRow="yRow"
+        :puyos="ghostPuyos"
       />
       <FieldView :xColumn="xColumn" :yRow="yRow" :displayPuyos="showField ? displayPuyos : []" />
     </div>

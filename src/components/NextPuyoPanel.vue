@@ -15,14 +15,16 @@ defineProps<{
 <template>
   <div class="next-area">
     <div class="next-label">Next</div>
-    <div class="next-pair">
-      <div class="puyo" :style="{ backgroundColor: nextPuyo.child.color }"></div>
-      <div class="puyo" :style="{ backgroundColor: nextPuyo.jiku.color }"></div>
-    </div>
-    <div class="next-divider"></div>
-    <div class="next-pair">
-      <div class="puyo" :style="{ backgroundColor: next2Puyo.child.color }"></div>
-      <div class="puyo" :style="{ backgroundColor: next2Puyo.jiku.color }"></div>
+    <div class="next-pairs">
+      <div class="next-pair">
+        <div class="puyo" :style="{ backgroundColor: nextPuyo.child.color }"></div>
+        <div class="puyo" :style="{ backgroundColor: nextPuyo.jiku.color }"></div>
+      </div>
+      <div class="next-divider"></div>
+      <div class="next-pair">
+        <div class="puyo" :style="{ backgroundColor: next2Puyo.child.color }"></div>
+        <div class="puyo" :style="{ backgroundColor: next2Puyo.jiku.color }"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -37,6 +39,13 @@ defineProps<{
   flex-direction: column;
   align-items: center;
   gap: 6px;
+}
+
+.next-pairs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 
 .next-label {
@@ -61,8 +70,8 @@ defineProps<{
 }
 
 .next-divider {
-  width: 100%;
-  height: 1px;
+  width: 1px;
+  height: 100%;
   background: #4a556844;
 }
 </style>
