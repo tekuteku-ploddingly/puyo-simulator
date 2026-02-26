@@ -5,6 +5,7 @@ export interface IFieldPuyos {
   searchRenketsu: (puyos: IPuyo[]) => IRenketsuPuyoList
   doOwanimo: (puyos: IPuyo[]) => IPuyo[]
   chainSteps: () => Generator<{ phase: Phase; puyos: IPuyo[] }>
+  addDropPuyo: ({ jikuPuyo, childPuyo }: { jikuPuyo: IPuyo; childPuyo: IPuyo }) => void
 }
 
 export type Phase = 'owanimo' | 'drop'
@@ -16,6 +17,14 @@ export class FieldPuyos implements IFieldPuyos {
   puyos: IPuyo[]
   constructor(puyos: IPuyo[]) {
     this.puyos = puyos
+  }
+  addDropPuyo({ jikuPuyo, childPuyo }: { jikuPuyo: IPuyo; childPuyo: IPuyo }): IPuyo[] {
+    this.puyos.push(jikuPuyo)
+    this.puyos.push(childPuyo)
+    // fixme. xColumn をハードコードしている
+    const dropped = this.dropPuyos({ puyos: this.puyos, xColumn: 6 })
+    this.puyos = dropped
+    return dropped
   }
   *chainSteps(): Generator<{ phase: Phase; puyos: IPuyo[] }> {
     while (true) {

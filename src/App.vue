@@ -24,7 +24,6 @@ const puyos = [
   new Puyo({ color: 'blue', x: 3, y: 3, xColumn, yRow, owanimoFlag: false }),
   new Puyo({ color: 'yellow', x: 1, y: 4, xColumn, yRow, owanimoFlag: false }),
   new Puyo({ color: 'red', x: 1, y: 5, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: 'blue', x: 2, y: 4, xColumn, yRow, owanimoFlag: false }),
 ]
 const fieldPuyos = new FieldPuyos(puyos)
 
@@ -48,8 +47,22 @@ const tsumoYRow = 3
 const tsumoPuyo = new TsumoPuyo({ xColumn: tsumoXColumn, yRow: tsumoYRow })
 tsumoPuyo.tsumo({
   puyo: [
-    new Puyo({ color: 'red', x: 1, y: 1, xColumn: tsumoXColumn, yRow: tsumoYRow, owanimoFlag: false }),
-    new Puyo({ color: 'blue', x: 1, y: 1, xColumn: tsumoXColumn, yRow: tsumoYRow, owanimoFlag: false }),
+    new Puyo({
+      color: 'red',
+      x: 1,
+      y: 1,
+      xColumn: tsumoXColumn,
+      yRow: tsumoYRow,
+      owanimoFlag: false,
+    }),
+    new Puyo({
+      color: 'blue',
+      x: 1,
+      y: 1,
+      xColumn: tsumoXColumn,
+      yRow: tsumoYRow,
+      owanimoFlag: false,
+    }),
   ],
 })
 const displayTsumoPuyos = ref(tsumoPuyo.puyos)
@@ -72,7 +85,22 @@ function rotateRight() {
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function drop() {
-  console.log('drop')
+  const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: yRow })
+  // todo. 13段チェック
+  console.warn('13段チェックが必要です')
+
+  // FieldPuyos に追加する
+  const dropJikuPuyo = jikuPuyo
+  const dropChildPuyo = childPuyo
+  const dropped = fieldPuyos.addDropPuyo({ jikuPuyo: dropJikuPuyo, childPuyo: dropChildPuyo })
+
+  // フィールド描画に反映
+  displayPuyos.value = dropped
+
+  // drop に成功したなら、ツモぷよを空にする
+  tsumoPuyo.dropPuyo()
+  displayTsumoPuyos.value = [...tsumoPuyo.puyos]
+
   nextStep()
 }
 </script>
