@@ -2,12 +2,14 @@
 import FieldWrapper from './components/FieldWrapper.vue'
 import ControlPad from './components/ControlPad.vue'
 import NextPuyoPanel from './components/NextPuyoPanel.vue'
+import TemplateSelector from './components/TemplateSelector.vue'
 import { FieldPuyos, type chainStepsIterator } from './domains/entities/FieldPuyos'
 import { TsumoPuyo } from './domains/entities/TsumoPuyo'
 import { Puyo } from './domains/valueObjects/Puyo'
 import { sleep } from './utils/utils'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { PuyoFactory } from './domains/entities/PuyoFactory'
+import { templates } from './domains/templates'
 
 // One Based Index で列数と段数を指定
 const xColumn = 6 // 6列
@@ -33,6 +35,14 @@ const fieldPuyos = new FieldPuyos(puyos)
 
 const displayPuyos = ref(fieldPuyos.calcConnections(fieldPuyos.puyos)) // 描画用
 const isChaining = ref(false) // 連鎖処理中フラグ
+
+// 定型オーバーレイ
+const selectedTemplate = ref<string | null>(null)
+const showField = ref(true)
+const overlayPuyos = computed(() => {
+  const t = templates.find((t) => t.name === selectedTemplate.value)
+  return t ? t.puyos : []
+})
 
 // 連鎖の処理
 async function nextStep(stepsIterator: chainStepsIterator) {
@@ -145,9 +155,19 @@ function drop() {
         :xColumn="xColumn"
         :yRow="yRow"
         :displayPuyos="displayPuyos"
+        :overlayPuyos="overlayPuyos"
+        :showField="showField"
       />
       <div class="side-panel">
         <NextPuyoPanel :nextPuyo="displayNextPuyo" :next2Puyo="displayNext2Puyo" />
+        <TemplateSelector
+          :templates="templates"
+          :selected="selectedTemplate"
+          :showField="showField"
+          @change="selectedTemplate = $event"
+          @update:showField="showField = $event"
+        />
+        
       </div>
     </div>
     <ControlPad
