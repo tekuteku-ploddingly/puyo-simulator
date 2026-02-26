@@ -38,7 +38,7 @@ withDefaults(
 
 <style scoped>
 .field-container {
-  width: 60%;
+  width: 100%;
 }
 
 .field {

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import FieldView from './components/FieldView.vue'
+import FieldWrapper from './components/FieldWrapper.vue'
 import ControlPad from './components/ControlPad.vue'
 import { FieldPuyos } from './domains/entities/FieldPuyos'
+import { TsumoPuyo } from './domains/entities/TsumoPuyo'
 import { Puyo } from './domains/valueObjects/Puyo'
 import { sleep } from './utils/utils'
 import { ref } from 'vue'
@@ -41,18 +42,34 @@ async function nextStep() {
   nextStep()
 }
 
+// ツモぷよ
+const tsumoXColumn = 6
+const tsumoYRow = 3
+const tsumoPuyo = new TsumoPuyo({ xColumn: tsumoXColumn, yRow: tsumoYRow })
+tsumoPuyo.tsumo({
+  puyo: [
+    new Puyo({ color: 'red', x: 1, y: 1, xColumn: tsumoXColumn, yRow: tsumoYRow, owanimoFlag: false }),
+    new Puyo({ color: 'blue', x: 1, y: 1, xColumn: tsumoXColumn, yRow: tsumoYRow, owanimoFlag: false }),
+  ],
+})
+const displayTsumoPuyos = ref(tsumoPuyo.puyos)
+
 // コントロールパッド
 function moveLeft() {
-  console.log('move left')
+  tsumoPuyo.moveLeft()
+  displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function moveRight() {
-  console.log('move right')
+  tsumoPuyo.moveRight()
+  displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function rotateLeft() {
-  console.log('rotate left')
+  tsumoPuyo.rotateLeft()
+  displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function rotateRight() {
-  console.log('rotate right')
+  tsumoPuyo.rotateRight()
+  displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function drop() {
   console.log('drop')
@@ -64,10 +81,10 @@ function drop() {
   <header></header>
 
   <main>
-    <FieldView
+    <FieldWrapper
+      :tsumoPuyos="displayTsumoPuyos"
       :xColumn="xColumn"
       :yRow="yRow"
-      :style="{ '--columns': xColumn, '--rows': yRow }"
       :displayPuyos="displayPuyos"
     />
     <ControlPad
