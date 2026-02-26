@@ -5,7 +5,7 @@ import NextPuyoPanel from './components/NextPuyoPanel.vue'
 import TemplateSelector from './components/TemplateSelector.vue'
 import { FieldPuyos, type chainStepsIterator } from './domains/entities/FieldPuyos'
 import { TsumoPuyo } from './domains/entities/TsumoPuyo'
-import { Puyo } from './domains/valueObjects/Puyo'
+import { Puyo, type IPuyo } from './domains/valueObjects/Puyo'
 import { sleep } from './utils/utils'
 import { ref, computed } from 'vue'
 import { PuyoFactory } from './domains/entities/PuyoFactory'
@@ -15,22 +15,10 @@ import { templates } from './domains/templates'
 const xColumn = 6 // 6列
 const yRow = 13 // 13段
 
-const puyoFactory = new PuyoFactory({ numberOfColors: 4 })
+let puyoFactory = new PuyoFactory({ numberOfColors: 4 })
 
 // ONE Based Index で puyo の位置を指定
-const puyos = [
-  new Puyo({ color: '#bd2824', x: 1, y: 1, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#bd2824', x: 2, y: 1, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#bd2824', x: 3, y: 1, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#ffc932', x: 1, y: 2, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#ffc932', x: 2, y: 2, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#ffc932', x: 3, y: 2, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#264dd8', x: 1, y: 3, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#264dd8', x: 2, y: 3, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#264dd8', x: 3, y: 3, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#ffc932', x: 1, y: 4, xColumn, yRow, owanimoFlag: false }),
-  new Puyo({ color: '#bd2824', x: 1, y: 5, xColumn, yRow, owanimoFlag: false }),
-]
+const puyos: IPuyo[] = []
 const fieldPuyos = new FieldPuyos(puyos)
 
 const displayPuyos = ref(fieldPuyos.calcConnections(fieldPuyos.puyos)) // 描画用
@@ -103,6 +91,24 @@ function rotateRight() {
   tsumoPuyo.rotateRight()
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
+function reset() {
+  if (isChaining.value) return
+  // フィールドをクリア
+  fieldPuyos.puyos = []
+  displayPuyos.value = []
+  // ツモを新しくする
+  puyoFactory = new PuyoFactory({ numberOfColors: 4 })
+  const { jiku: newJiku, child: newChild } = puyoFactory.tsumoPuyo
+  tsumoPuyo.tsumo({
+    puyo: [
+      new Puyo({ ...newJiku, xColumn: tsumoXColumn, yRow: tsumoYRow }),
+      new Puyo({ ...newChild, xColumn: tsumoXColumn, yRow: tsumoYRow }),
+    ],
+  })
+  displayTsumoPuyos.value = [...tsumoPuyo.puyos]
+  displayNextPuyo.value = puyoFactory.nextPuyo
+  displayNext2Puyo.value = puyoFactory.next2Puyo
+}
 function drop() {
   if (isChaining.value) return
   const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: yRow })
@@ -167,7 +173,8 @@ function drop() {
           @change="selectedTemplate = $event"
           @update:showField="showField = $event"
         />
-        
+        <div class="spacer"></div>
+        <button class="menu-btn" @click="reset">Reset</button>
       </div>
     </div>
     <ControlPad
@@ -203,5 +210,23 @@ main {
   gap: 10px;
   width: 80px;
   flex-shrink: 0;
+}
+.spacer {
+  height: 10px;
+}
+.menu-btn {
+  background: #2d3748;
+  border: 2px solid #4a5568;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 0;
+  cursor: pointer;
+  text-align: center;
+}
+.menu-btn:active {
+  background: #4a5568;
 }
 </style>
