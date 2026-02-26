@@ -32,12 +32,16 @@ const puyos = [
 const fieldPuyos = new FieldPuyos(puyos)
 
 const displayPuyos = ref(fieldPuyos.puyos) // 描画用
+const isChaining = ref(false) // 連鎖処理中フラグ
 
 // 連鎖の処理
 async function nextStep(stepsIterator: chainStepsIterator) {
   const { done, value } = stepsIterator.next()
 
-  if (done || !value) return // 連鎖処理が完了
+  if (done || !value) {
+    isChaining.value = false
+    return // 連鎖処理が完了
+  }
   displayPuyos.value = value.puyos // 描画用に更新
   // 0.5秒待って次ステップへ
   await sleep(500)
@@ -70,22 +74,27 @@ const displayNext2Puyo = ref(puyoFactory.next2Puyo)
 
 // コントロールパッド
 function moveLeft() {
+  if (isChaining.value) return
   tsumoPuyo.moveLeft()
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function moveRight() {
+  if (isChaining.value) return
   tsumoPuyo.moveRight()
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function rotateLeft() {
+  if (isChaining.value) return
   tsumoPuyo.rotateLeft()
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function rotateRight() {
+  if (isChaining.value) return
   tsumoPuyo.rotateRight()
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
 }
 function drop() {
+  if (isChaining.value) return
   const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: yRow })
 
   // 13段チェック: どちらかの列が満杯なら落とせない
@@ -122,6 +131,7 @@ function drop() {
   displayNext2Puyo.value = puyoFactory.next2Puyo
 
   // 連鎖の処理に使う
+  isChaining.value = true
   const stepsIterator = fieldPuyos.chainSteps()
   nextStep(stepsIterator)
 }
