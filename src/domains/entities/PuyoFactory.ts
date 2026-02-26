@@ -22,6 +22,7 @@ export class PuyoFactory implements IPuyoFactory {
   readonly numberOfColors: number
   readonly colorVariation
   readonly colors: string[]
+  private colorBag: string[] = []
   tsumoPuyo: IPuyoPair
   nextPuyo: IPuyoPair
   next2Puyo: IPuyoPair
@@ -49,15 +50,9 @@ export class PuyoFactory implements IPuyoFactory {
 
   // 4手目以降のぷよを作る
   private makePuyo(): IPuyoPair {
-    const pairColors = Array.from({ length: 4 }, () => this.getColor({ colors: this.colors }))
-    const c = (i: number): string => {
-      const color = pairColors[i]
-      if (color === undefined) throw new Error('色の生成に失敗しました')
-      return color
-    }
     const { jiku, child } = this.makePairPuyo({
-      jikuColor: c(0),
-      childColor: c(1),
+      jikuColor: this.drawColor(),
+      childColor: this.drawColor(),
     })
     return { jiku, child }
   }
@@ -80,15 +75,15 @@ export class PuyoFactory implements IPuyoFactory {
     // 初手とネクストの色（4色）を2〜3色になるまで抽選
     let firstFourColors: string[] = []
     while (true) {
-      firstFourColors = Array.from({ length: 4 }, () => this.getColor({ colors: this.colors }))
+      firstFourColors = Array.from({ length: 4 }, () => this.drawColor())
       const uniqueCount = new Set(firstFourColors).size
       if (uniqueCount >= 2 && uniqueCount <= 3) break
     }
     // ネクネク（5、6色目）
     const allColors = [
       ...firstFourColors,
-      this.getColor({ colors: this.colors }),
-      this.getColor({ colors: this.colors }),
+      this.drawColor(),
+      this.drawColor(),
     ]
     const c = (i: number): string => {
       const color = allColors[i]
@@ -119,11 +114,26 @@ export class PuyoFactory implements IPuyoFactory {
     return colorVariation.slice(0, numberOfColors)
   }
 
-  // 色を抽選
-  private getColor({ colors }: { colors: string[] }): string {
-    const index = Math.floor(Math.random() * colors.length)
-    const color = colors[index]
-    if (color === undefined) throw new Error('色の抽選に失敗しました')
-    return color
+  // バッグから色を1つ引く（空になったら新しいバッグを作る）
+  private drawColor(): string {
+    if (this.colorBag.length === 0) {
+      this.colorBag = this.createShuffledBag()
+    }
+    return this.colorBag.pop()!
+  }
+
+  // 各色が均等に入ったバッグを作ってシャッフルする
+  private createShuffledBag(): string[] {
+    // 各色2個ずつ入れる（4色なら8個のバッグ）
+    const bag: string[] = []
+    for (const color of this.colors) {
+      bag.push(color, color)
+    }
+    // Fisher-Yatesシャッフル
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[bag[i], bag[j]] = [bag[j]!, bag[i]!]
+    }
+    return bag
   }
 }
