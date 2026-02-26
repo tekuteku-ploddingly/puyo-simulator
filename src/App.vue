@@ -162,16 +162,20 @@ function drop() {
 
 <style scoped>
 main {
-  padding: 20px 0;
+  padding: 60px 0;
   box-sizing: border-box;
   max-width: 430px;
   height: 100dvh;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 .main-area {
   display: flex;
   gap: 10px;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 .side-panel {
   display: flex;

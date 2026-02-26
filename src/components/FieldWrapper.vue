@@ -31,6 +31,7 @@ withDefaults(
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 60%;
+  height: 100%;
+  aspect-ratio: 6 / 16;
 }
 </style>
