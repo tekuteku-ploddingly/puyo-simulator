@@ -87,7 +87,9 @@ function rotateRight() {
 }
 function drop() {
   const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: yRow })
-  // todo. 13段チェック
+
+  // 13段チェック: どちらかの列が満杯なら落とせない
+  if (!fieldPuyos.canDropPuyo({ jikuPuyo, childPuyo })) return
 
   // FieldPuyos に追加する
   const dropJikuPuyo = jikuPuyo
