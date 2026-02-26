@@ -15,35 +15,11 @@ describe('Puyo', () => {
         })
       }).toThrowError(Error)
     })
-    it('x が xColumn より大きいとき、エラーになる', () => {
-      expect(() => {
-        new Puyo({
-          x: 7,
-          y: 1,
-          xColumn: 6,
-          yRow: 13,
-          color: 'red',
-          owanimoFlag: false,
-        })
-      }).toThrowError(Error)
-    })
     it('y が 1 未満のとき、エラーになる', () => {
       expect(() => {
         new Puyo({
           x: 1,
           y: 0,
-          xColumn: 6,
-          yRow: 13,
-          color: 'red',
-          owanimoFlag: false,
-        })
-      }).toThrowError(Error)
-    })
-    it('y が yRow より大きいとき、エラーになる', () => {
-      expect(() => {
-        new Puyo({
-          x: 1,
-          y: 15,
           xColumn: 6,
           yRow: 13,
           color: 'red',

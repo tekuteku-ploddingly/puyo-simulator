@@ -49,22 +49,12 @@ export class Puyo implements IPuyo {
     this.owanimoFlag = owanimoFlag
   }
 
-  private validate({
-    x,
-    y,
-    xColumn,
-    yRow,
-  }: {
-    x: number
-    y: number
-    xColumn: number
-    yRow: number
-  }): void {
-    if (x < 1 || x > xColumn) {
-      throw new Error(`x は 1 以上 ${xColumn} 以下でなければなりません。`)
+  private validate({ x, y }: { x: number; y: number; xColumn: number; yRow: number }): void {
+    if (x < 1) {
+      throw new Error('x は 1 以上でなければなりません。')
     }
-    if (y < 1 || y > yRow) {
-      throw new Error(`y は 1 以上 ${yRow} 以下でなければなりません。`)
+    if (y < 1) {
+      throw new Error('y は 1 以上でなければなりません。')
     }
   }
 
