@@ -1,10 +1,13 @@
 import type { IPuyo, IPuyoInfo } from './../valueObjects/Puyo'
 
+export type chainStepsIterator = Generator<{ phase: Phase; puyos: IPuyo[] }>
+
 export interface IFieldPuyos {
   puyos: IPuyo[]
   searchRenketsu: (puyos: IPuyo[]) => IRenketsuPuyoList
   doOwanimo: (puyos: IPuyo[]) => IPuyo[]
-  chainSteps: () => Generator<{ phase: Phase; puyos: IPuyo[] }>
+  chainSteps: () => chainStepsIterator
+  addDropPuyo: ({ jikuPuyo, childPuyo }: { jikuPuyo: IPuyo; childPuyo: IPuyo }) => void
 }
 
 export type Phase = 'owanimo' | 'drop'
@@ -17,7 +20,15 @@ export class FieldPuyos implements IFieldPuyos {
   constructor(puyos: IPuyo[]) {
     this.puyos = puyos
   }
-  *chainSteps(): Generator<{ phase: Phase; puyos: IPuyo[] }> {
+  addDropPuyo({ jikuPuyo, childPuyo }: { jikuPuyo: IPuyo; childPuyo: IPuyo }): IPuyo[] {
+    this.puyos.push(jikuPuyo)
+    this.puyos.push(childPuyo)
+    // fixme. xColumn をハードコードしている
+    const dropped = this.dropPuyos({ puyos: this.puyos, xColumn: 6 })
+    this.puyos = dropped
+    return dropped
+  }
+  *chainSteps(): chainStepsIterator {
     while (true) {
       const renketsuPuyoList = this.searchRenketsu(this.puyos)
       const puyosWithFlag = this.setOwanimoFlag({ puyos: this.puyos, renketsuPuyoList })

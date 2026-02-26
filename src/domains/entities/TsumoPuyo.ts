@@ -18,7 +18,8 @@ export interface ITsumoPuyo {
   moveRight: () => void // 右に
   rotateLeft: () => void // 左回転
   rotateRight: () => void // 右回転
-  dropPuyo: () => { jikuPuyo: IPuyo; childPuyo: IPuyo }
+  getDropPuyo: ({ fieldYRow }: { fieldYRow: number }) => { jikuPuyo: IPuyo; childPuyo: IPuyo }
+  dropPuyo: () => void
 }
 
 export class TsumoPuyo implements ITsumoPuyo {
@@ -150,17 +151,89 @@ export class TsumoPuyo implements ITsumoPuyo {
   }
 
   // ツモぷよを渡す
-  dropPuyo(): { jikuPuyo: IPuyo; childPuyo: IPuyo } {
+  // y座標を調整して返す
+  getDropPuyo({ fieldYRow }: { fieldYRow: number }): { jikuPuyo: IPuyo; childPuyo: IPuyo } {
     const jikuPuyo = this.puyos[0]
     const childPuyo = this.puyos[1]
     if (!jikuPuyo || !childPuyo) throw new Error('ツモぷよが不正です。2つのぷよが必要です')
+    if (!fieldYRow) throw new Error('フィールドの最大段数を渡してください')
+
+    const jikuX = jikuPuyo.x
+    const jikuY = jikuPuyo.y
+    const childX = childPuyo.x
+    const childY = childPuyo.y
+
+    // 相対座標を取得
+    const { dx: _dx, dy } = this.calcRelativeCoordinate({
+      jikuX,
+      jikuY,
+      childX,
+      childY,
+    })
+
+    // 相対座標に応じて、ツモぷよのy座標を変更
+    let newJikuY = fieldYRow
+    let newChildY = fieldYRow
+
+    switch (dy) {
+      // 初期状態
+      // 13段目  子
+      // 12段目  軸
+      case 1:
+        newChildY = fieldYRow
+        newJikuY = fieldYRow - 1
+        break
+
+      // 1/4 回転
+      // 13段目 軸 子
+      case 0:
+        newJikuY = fieldYRow
+        newChildY = fieldYRow
+        break
+
+      // 半回転
+      // 13段目  軸
+      // 12段目  子
+      case -1:
+        newJikuY = fieldYRow
+        newChildY = fieldYRow - 1
+        break
+
+      default:
+        throw new Error('ツモぷよのdrop座標計算に失敗しました')
+    }
+
+    const newJikuPuyo = new Puyo({ ...jikuPuyo, y: newJikuY, yRow: fieldYRow })
+    const newChildPuyo = new Puyo({ ...childPuyo, y: newChildY, yRow: fieldYRow })
 
     return {
-      jikuPuyo,
-      childPuyo,
+      jikuPuyo: newJikuPuyo,
+      childPuyo: newChildPuyo,
     }
   }
 
+  // ぷよを落とす…ツモぷよを空配列にする
+  dropPuyo(): void {
+    this.puyos = []
+  }
+
+  // 子ぷよの相対座標を取得
+  // 基準点（軸ぷよ）から見て、子ぷよがどこにいるか
+  private calcRelativeCoordinate({
+    jikuX,
+    jikuY,
+    childX,
+    childY,
+  }: {
+    jikuX: number
+    jikuY: number
+    childX: number
+    childY: number
+  }): { dx: number; dy: number } {
+    const dx = childX - jikuX
+    const dy = childY - jikuY
+    return { dx, dy }
+  }
   // 右回転・左回転をしたあとの軸ぷよ・子ぷよの絶対座標を返却
   private roteteProcess({
     jikuX,
@@ -176,9 +249,12 @@ export class TsumoPuyo implements ITsumoPuyo {
     type: rotatoType
   }): { newJikuX: number; newJikuY: number; newChildX: number; newChildY: number } {
     // 子ぷよの相対座標を取得
-    // 基準点（軸ぷよ）から見て、子ぷよがどこにいるか
-    const dx = childX - jikuX
-    const dy = childY - jikuY
+    const { dx, dy } = this.calcRelativeCoordinate({
+      jikuX,
+      jikuY,
+      childX,
+      childY,
+    })
 
     // 子ぷよの移動先の相対座標を計算
     // 移動前の相対座標を (dx, dy) 、移動後の相対座標を (dx', dy') とすると

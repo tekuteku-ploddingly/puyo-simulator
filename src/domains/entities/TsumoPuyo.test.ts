@@ -339,4 +339,87 @@ describe('#TsumoPuyo', () => {
       )
     })
   })
+  describe('ツモぷよをdrop用ぷよに変換', () => {
+    it('初期状態: 上が子、下が軸', () => {
+      // Arrange
+      const tsumoPuyo = new TsumoPuyo({ xColumn: 6, yRow: 3 })
+      const tsumoPuyos = [
+        new Puyo({ x: 1, y: 1, xColumn: 6, yRow: 3, color: 'red', owanimoFlag: false }),
+        new Puyo({ x: 1, y: 1, xColumn: 6, yRow: 3, color: 'blue', owanimoFlag: false }),
+      ]
+      tsumoPuyo.tsumo({ puyo: tsumoPuyos })
+
+      // Act
+      const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: 13 })
+
+      // Assert
+      const resultJiku = { x: jikuPuyo.x, y: jikuPuyo.y, color: jikuPuyo.color }
+      const resultChild = { x: childPuyo.x, y: childPuyo.y, color: childPuyo.color }
+      expect(resultJiku).toEqual({
+        x: 3,
+        y: 12,
+        color: 'red',
+      })
+      expect(resultChild).toEqual({
+        x: 3,
+        y: 13,
+        color: 'blue',
+      })
+    })
+    it('1/4回転: 軸と子が横並び', () => {
+      // Arrange
+      const tsumoPuyo = new TsumoPuyo({ xColumn: 6, yRow: 3 })
+      const tsumoPuyos = [
+        new Puyo({ x: 1, y: 1, xColumn: 6, yRow: 3, color: 'red', owanimoFlag: false }),
+        new Puyo({ x: 1, y: 1, xColumn: 6, yRow: 3, color: 'blue', owanimoFlag: false }),
+      ]
+      tsumoPuyo.tsumo({ puyo: tsumoPuyos })
+      tsumoPuyo.rotateLeft()
+
+      // Act
+      const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: 13 })
+
+      // Assert
+      const resultJiku = { x: jikuPuyo.x, y: jikuPuyo.y, color: jikuPuyo.color }
+      const resultChild = { x: childPuyo.x, y: childPuyo.y, color: childPuyo.color }
+      expect(resultJiku).toEqual({
+        x: 3,
+        y: 13,
+        color: 'red',
+      })
+      expect(resultChild).toEqual({
+        x: 2,
+        y: 13,
+        color: 'blue',
+      })
+    })
+    it('半回転: 軸と子が横並び', () => {
+      // Arrange
+      const tsumoPuyo = new TsumoPuyo({ xColumn: 6, yRow: 3 })
+      const tsumoPuyos = [
+        new Puyo({ x: 1, y: 1, xColumn: 6, yRow: 3, color: 'red', owanimoFlag: false }),
+        new Puyo({ x: 1, y: 1, xColumn: 6, yRow: 3, color: 'blue', owanimoFlag: false }),
+      ]
+      tsumoPuyo.tsumo({ puyo: tsumoPuyos })
+      tsumoPuyo.rotateLeft()
+      tsumoPuyo.rotateLeft()
+
+      // Act
+      const { jikuPuyo, childPuyo } = tsumoPuyo.getDropPuyo({ fieldYRow: 13 })
+
+      // Assert
+      const resultJiku = { x: jikuPuyo.x, y: jikuPuyo.y, color: jikuPuyo.color }
+      const resultChild = { x: childPuyo.x, y: childPuyo.y, color: childPuyo.color }
+      expect(resultJiku).toEqual({
+        x: 3,
+        y: 13,
+        color: 'red',
+      })
+      expect(resultChild).toEqual({
+        x: 3,
+        y: 12,
+        color: 'blue',
+      })
+    })
+  })
 })
