@@ -31,7 +31,7 @@ const puyos = [
 ]
 const fieldPuyos = new FieldPuyos(puyos)
 
-const displayPuyos = ref(fieldPuyos.puyos) // 描画用
+const displayPuyos = ref(fieldPuyos.calcConnections(fieldPuyos.puyos)) // 描画用
 const isChaining = ref(false) // 連鎖処理中フラグ
 
 // 連鎖の処理
@@ -42,7 +42,7 @@ async function nextStep(stepsIterator: chainStepsIterator) {
     isChaining.value = false
     return // 連鎖処理が完了
   }
-  displayPuyos.value = value.puyos // 描画用に更新
+  displayPuyos.value = fieldPuyos.calcConnections(value.puyos) // 描画用に更新
   // 0.5秒待って次ステップへ
   await sleep(500)
   nextStep(stepsIterator)
@@ -106,7 +106,7 @@ function drop() {
   const dropped = fieldPuyos.addDropPuyo({ jikuPuyo: dropJikuPuyo, childPuyo: dropChildPuyo })
 
   // フィールド描画に反映
-  displayPuyos.value = dropped
+  displayPuyos.value = fieldPuyos.calcConnections(dropped)
 
   // drop に成功したなら、ツモぷよを繰り上げる
   puyoFactory.dropTsumo()

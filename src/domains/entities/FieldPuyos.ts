@@ -122,6 +122,17 @@ export class FieldPuyos implements IFieldPuyos {
     return result
   }
 
+  // 各ぷよの隣接同色接続情報を計算する
+  calcConnections(puyos: IPuyo[]): IPuyo[] {
+    return puyos.map((puyo) => {
+      const top = puyos.some((p) => p.x === puyo.x && p.y === puyo.y + 1 && p.color === puyo.color)
+      const bottom = puyos.some((p) => p.x === puyo.x && p.y === puyo.y - 1 && p.color === puyo.color)
+      const left = puyos.some((p) => p.x === puyo.x - 1 && p.y === puyo.y && p.color === puyo.color)
+      const right = puyos.some((p) => p.x === puyo.x + 1 && p.y === puyo.y && p.color === puyo.color)
+      return puyo.setConnections({ top, right, bottom, left })
+    })
+  }
+
   doOwanimo(puyos: IPuyo[]): IPuyo[] {
     return puyos.filter((puyo) => !puyo.owanimoFlag)
   }

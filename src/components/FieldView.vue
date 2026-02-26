@@ -27,8 +27,15 @@ withDefaults(
           <div
             v-for="p in displayPuyos.filter((p) => p.x === x && p.y === y)"
             :key="p.color"
-            :style="{ backgroundColor: p.color, color: p.color }"
-            :class="['puyo', { owanimo: p.owanimoFlag }]"
+            :style="{ backgroundColor: p.color, color: p.color, '--bridge-opacity': p.color === '#ffc932' ? 0.7 : 0.4 }"
+            :class="[
+              'puyo',
+              { owanimo: p.owanimoFlag },
+              { 'connected-top': p.connections.top },
+              { 'connected-right': p.connections.right },
+              { 'connected-bottom': p.connections.bottom },
+              { 'connected-left': p.connections.left },
+            ]"
           ></div>
         </div>
       </template>
@@ -47,9 +54,13 @@ withDefaults(
   display: grid;
   grid-template-columns: repeat(var(--columns), 1fr);
   grid-template-rows: repeat(var(--rows), 1fr);
+  background-image:
+    linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+    linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
+  background-size:
+    calc(100% / var(--columns)) calc(100% / var(--rows));
 }
 .cell {
-  border: 1px dashed #ccc;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -58,9 +69,40 @@ withDefaults(
   width: 80%;
   height: 80%;
   border-radius: 50%;
+  position: relative;
+  z-index: 1;
+}
+/* 接続ブリッジ: 薄い色で隣接ぷよとの間をつなぐ */
+.puyo.connected-right::after {
+  content: '';
+  position: absolute;
+  background-color: inherit;
+  opacity: var(--bridge-opacity, 0.4);
+  right: -25%;
+  top: 20%;
+  width: 25%;
+  height: 60%;
+  border-radius: 20%;
+  z-index: -1;
+}
+.puyo.connected-top::before {
+  content: '';
+  position: absolute;
+  background-color: inherit;
+  opacity: var(--bridge-opacity, 0.4);
+  top: -25%;
+  left: 20%;
+  width: 60%;
+  height: 25%;
+  border-radius: 20%;
+  z-index: -1;
 }
 .puyo.owanimo {
   background-color: transparent !important;
   border: 3px dashed currentColor;
+}
+.puyo.owanimo::before,
+.puyo.owanimo::after {
+  display: none;
 }
 </style>
