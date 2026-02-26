@@ -59,6 +59,8 @@ withDefaults(
     linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
   background-size:
     calc(100% / var(--columns)) calc(100% / var(--rows));
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
 }
 .cell {
   display: flex;
