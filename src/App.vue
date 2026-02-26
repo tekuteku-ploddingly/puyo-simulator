@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import FieldWrapper from './components/FieldWrapper.vue'
 import ControlPad from './components/ControlPad.vue'
+import NextPuyoPanel from './components/NextPuyoPanel.vue'
 import { FieldPuyos } from './domains/entities/FieldPuyos'
 import { TsumoPuyo } from './domains/entities/TsumoPuyo'
 import { Puyo } from './domains/valueObjects/Puyo'
 import { sleep } from './utils/utils'
 import { ref } from 'vue'
+import { PuyoFactory } from './domains/entities/PuyoFactory'
 
 // One Based Index で列数と段数を指定
 const xColumn = 6 // 6列
 const yRow = 13 // 13段
+
+const puyoFactory = new PuyoFactory({ numberOfColors: 4 })
 
 // ONE Based Index で puyo の位置を指定
 const puyos = [
@@ -32,7 +36,9 @@ const stepsIterator = fieldPuyos.chainSteps()
 const displayPuyos = ref(fieldPuyos.puyos) // 描画用
 
 async function nextStep() {
+  console.log('nextStep')
   const { done, value } = stepsIterator.next()
+  console.log('done', done, 'value', value)
 
   if (done || !value) return // 連鎖処理が完了
   displayPuyos.value = value.puyos // 描画用に更新
@@ -45,27 +51,25 @@ async function nextStep() {
 const tsumoXColumn = 6
 const tsumoYRow = 3
 const tsumoPuyo = new TsumoPuyo({ xColumn: tsumoXColumn, yRow: tsumoYRow })
+// fixme. ここで変換している
+const { jiku, child } = puyoFactory.tsumoPuyo
 tsumoPuyo.tsumo({
   puyo: [
     new Puyo({
-      color: 'red',
-      x: 1,
-      y: 1,
+      ...jiku,
       xColumn: tsumoXColumn,
       yRow: tsumoYRow,
-      owanimoFlag: false,
     }),
     new Puyo({
-      color: 'blue',
-      x: 1,
-      y: 1,
+      ...child,
       xColumn: tsumoXColumn,
       yRow: tsumoYRow,
-      owanimoFlag: false,
     }),
   ],
 })
 const displayTsumoPuyos = ref(tsumoPuyo.puyos)
+const displayNextPuyo = ref(puyoFactory.nextPuyo)
+const displayNext2Puyo = ref(puyoFactory.next2Puyo)
 
 // コントロールパッド
 function moveLeft() {
@@ -97,24 +101,45 @@ function drop() {
   // フィールド描画に反映
   displayPuyos.value = dropped
 
-  // drop に成功したなら、ツモぷよを空にする
+  // drop に成功したなら、ツモぷよを繰り上げる
+  puyoFactory.dropTsumo()
   tsumoPuyo.dropPuyo()
+  const { jiku: nextJiku, child: nextChild } = puyoFactory.tsumoPuyo
+  tsumoPuyo.tsumo({
+    puyo: [
+      new Puyo({
+        ...nextJiku,
+        xColumn: tsumoXColumn,
+        yRow: tsumoYRow,
+      }),
+      new Puyo({
+        ...nextChild,
+        xColumn: tsumoXColumn,
+        yRow: tsumoYRow,
+      }),
+    ],
+  })
   displayTsumoPuyos.value = [...tsumoPuyo.puyos]
+  displayNextPuyo.value = puyoFactory.nextPuyo
+  displayNext2Puyo.value = puyoFactory.next2Puyo
 
   nextStep()
 }
 </script>
 
 <template>
-  <header></header>
-
   <main>
-    <FieldWrapper
-      :tsumoPuyos="displayTsumoPuyos"
-      :xColumn="xColumn"
-      :yRow="yRow"
-      :displayPuyos="displayPuyos"
-    />
+    <div class="main-area">
+      <FieldWrapper
+        :tsumoPuyos="displayTsumoPuyos"
+        :xColumn="xColumn"
+        :yRow="yRow"
+        :displayPuyos="displayPuyos"
+      />
+      <div class="side-panel">
+        <NextPuyoPanel :nextPuyo="displayNextPuyo" :next2Puyo="displayNext2Puyo" />
+      </div>
+    </div>
     <ControlPad
       :moveLeft="moveLeft"
       :moveRight="moveRight"
@@ -132,5 +157,17 @@ main {
   max-width: 430px;
   height: 100dvh;
   margin: 0 auto;
+}
+.main-area {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 80px;
+  flex-shrink: 0;
 }
 </style>
